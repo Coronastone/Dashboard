@@ -1,6 +1,7 @@
 import { Component } from 'react';
 
 import Dashboard from './views/Dashboard';
+import Roles from './views/Roles';
 import Users from './views/Users';
 
 type Route = {
@@ -24,6 +25,13 @@ const routers: Array<Route> = [
         name: 'Users',
         icon: 'fas fa-user-friends',
         component: Users,
+        layout: '/admin',
+    },
+    {
+        path: '/roles',
+        name: 'Roles',
+        icon: 'fas fa-user-shield',
+        component: Roles,
         layout: '/admin',
     },
 ];

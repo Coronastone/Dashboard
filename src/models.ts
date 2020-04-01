@@ -1,8 +1,16 @@
+interface Ability {
+    id: number;
+    name: string;
+    title: string;
+    created_at: string;
+}
+
 interface Role {
     id: number;
     name: string;
     title: string;
     created_at: string;
+    abilities: Array<Ability>;
 }
 
 interface User {
@@ -15,4 +23,4 @@ interface User {
     roles: Array<Role>;
 }
 
-export type { Role, User };
+export type { Ability, Role, User };
