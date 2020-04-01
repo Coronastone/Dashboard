@@ -1,6 +1,7 @@
 import { Component } from 'react';
 
 import Dashboard from './views/Dashboard';
+import Users from './views/Users';
 
 type Route = {
     path: string;
@@ -16,6 +17,13 @@ const routers: Array<Route> = [
         name: 'Dashboard',
         icon: 'fas fa-tachometer-alt',
         component: Dashboard,
+        layout: '/admin',
+    },
+    {
+        path: '/users',
+        name: 'Users',
+        icon: 'fas fa-user-friends',
+        component: Users,
         layout: '/admin',
     },
 ];
