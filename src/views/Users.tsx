@@ -317,9 +317,15 @@ class Users extends Component<Props, State> {
         this.setState({ q }, () => this.fetchDataAsync());
     }
     private toggleModal() {
-        this.setState({
-            modal: !this.state.modal,
-        });
+        const modal = !this.state.modal;
+
+        if (!modal) {
+            this.setState({
+                data: this.state.data.filter((user) => user !== undefined && user.id !== undefined),
+            });
+        }
+
+        this.setState({ modal });
     }
 }
 
