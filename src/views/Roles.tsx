@@ -49,12 +49,18 @@ class Roles extends Component<Props, State> {
         q: '',
         abilities: new Array<Ability>(),
     };
+    private cancellation = new AbortController();
+    private unmounted = false;
     public constructor(props: Readonly<Props>) {
         super(props);
     }
     public componentDidMount() {
         this.fetchDataAsync();
         this.fetchAbilitiesAsync();
+    }
+    public componentWillUnmount() {
+        this.cancellation.abort();
+        this.unmounted = true;
     }
     public render() {
         return (
@@ -163,6 +169,10 @@ class Roles extends Component<Props, State> {
             </div>
         );
     }
+    public setState(state: any, callback?: () => void) {
+        if (this.unmounted) return;
+        super.setState(state, callback);
+    }
     private edit(index: number) {
         if (index < 0) {
             index = this.state.data.push({} as Role);
@@ -206,7 +216,11 @@ class Roles extends Component<Props, State> {
         if (current !== undefined) {
             try {
                 if (current.id === undefined) {
-                    const { id, created_at } = await postAsync(`/api/admin/roles`, current);
+                    const { id, created_at } = await postAsync(
+                        `/api/admin/roles`,
+                        current,
+                        this.cancellation.signal
+                    );
 
                     this.setState({
                         data: this.state.data.map(role => {
@@ -221,7 +235,11 @@ class Roles extends Component<Props, State> {
                         }),
                     });
                 } else {
-                    await putAsync(`/api/admin/roles/${current.id}`, current);
+                    await putAsync(
+                        `/api/admin/roles/${current.id}`,
+                        current,
+                        this.cancellation.signal
+                    );
 
                     this.setState({
                         data: this.state.data.map(role => {
@@ -246,7 +264,7 @@ class Roles extends Component<Props, State> {
     }
     private async deleteAsync(id: number) {
         try {
-            await deleteAsync(`/api/admin/roles/${id}`);
+            await deleteAsync(`/api/admin/roles/${id}`, this.cancellation.signal);
 
             this.setState({
                 data: this.state.data.filter((role: Role) => {
@@ -258,11 +276,16 @@ class Roles extends Component<Props, State> {
         }
     }
     private async fetchDataAsync(page: number = 1) {
-        this.setState(await getAsync(`/api/admin/roles?q=${this.state.q}&page=${page}`));
+        this.setState(
+            await getAsync(
+                `/api/admin/roles?q=${this.state.q}&page=${page}`,
+                this.cancellation.signal
+            )
+        );
     }
     private async fetchAbilitiesAsync() {
         this.setState({
-            abilities: await getAsync('/api/admin/abilities'),
+            abilities: await getAsync('/api/admin/abilities', this.cancellation.signal),
         });
     }
     private renderRow() {

@@ -52,12 +52,18 @@ class Users extends Component<Props, State> {
         trashed: false,
         roles: new Array<Role>(),
     };
+    private cancellation = new AbortController();
+    private unmounted = false;
     public constructor(props: Readonly<Props>) {
         super(props);
     }
     public componentDidMount() {
         this.fetchDataAsync();
         this.fetchRolesAsync();
+    }
+    public componentWillUnmount() {
+        this.cancellation.abort();
+        this.unmounted = true;
     }
     public render() {
         return (
@@ -184,6 +190,10 @@ class Users extends Component<Props, State> {
             </div>
         );
     }
+    public setState(state: any, callback?: () => void) {
+        if (this.unmounted) return;
+        super.setState(state, callback);
+    }
     private edit(index: number) {
         if (index < 0) {
             const user = {} as User;
@@ -228,7 +238,11 @@ class Users extends Component<Props, State> {
         const { current } = this.state;
         if (current !== undefined) {
             if (current.id === undefined) {
-                const { id, username, created_at } = await postAsync(`/api/admin/users`, current);
+                const { id, username, created_at } = await postAsync(
+                    `/api/admin/users`,
+                    current,
+                    this.cancellation.signal
+                );
 
                 this.setState({
                     data: this.state.data.map(user => {
@@ -244,7 +258,7 @@ class Users extends Component<Props, State> {
                     }),
                 });
             } else {
-                await putAsync(`/api/admin/users/${current.id}`, current);
+                await putAsync(`/api/admin/users/${current.id}`, current, this.cancellation.signal);
 
                 this.setState({
                     data: this.state.data.map(user => {
@@ -266,7 +280,10 @@ class Users extends Component<Props, State> {
     }
     private async deleteAsync(id: number, destroy: boolean) {
         try {
-            await deleteAsync(`/api/admin/users/${id}?destroy=${destroy}`);
+            await deleteAsync(
+                `/api/admin/users/${id}?destroy=${destroy}`,
+                this.cancellation.signal
+            );
 
             this.setState({
                 data: this.state.data.filter((user: User) => {
@@ -279,12 +296,26 @@ class Users extends Component<Props, State> {
     }
     private async fetchDataAsync(page: number = 1) {
         const { trashed, q } = this.state;
-        this.setState(await getAsync(`/api/admin/users?trashed=${trashed}&q=${q}&page=${page}`));
+
+        try {
+            const data = await getAsync(
+                `/api/admin/users?trashed=${trashed}&q=${q}&page=${page}`,
+                this.cancellation.signal
+            );
+
+            this.setState(data);
+        } catch {
+            toast.error('Cannot fetch data.');
+        }
     }
     private async fetchRolesAsync() {
-        this.setState({
-            roles: await getAsync('/api/admin/roles'),
-        });
+        try {
+            const roles = await getAsync('/api/admin/roles', this.cancellation.signal);
+
+            this.setState({ roles });
+        } catch {
+            toast.error('Cannot fetch data.');
+        }
     }
     private renderRow() {
         return this.state.data.map((user: User, index: number) => (
@@ -321,7 +352,7 @@ class Users extends Component<Props, State> {
 
         if (!modal) {
             this.setState({
-                data: this.state.data.filter((user) => user !== undefined && user.id !== undefined),
+                data: this.state.data.filter(user => user !== undefined && user.id !== undefined),
             });
         }
 
