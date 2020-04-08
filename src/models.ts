@@ -2,6 +2,7 @@ interface Ability {
     id: number;
     name: string;
     title: string;
+    built_in: boolean;
     created_at: string;
 }
 

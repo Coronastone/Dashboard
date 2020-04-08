@@ -20,10 +20,9 @@ import {
     InputGroupText,
     CardHeader,
 } from 'reactstrap';
-import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 
-import { Ability, Role } from '../models';
+import { Ability } from '../models';
 import Paginator from '../components/Paginator/Paginator';
 import { deleteAsync, getAsync, putAsync, postAsync } from '../api';
 
@@ -31,23 +30,21 @@ interface Props {}
 
 interface State {
     current_page: number;
-    current?: Role;
-    data: Array<Role>;
+    current?: Ability;
+    data: Array<Ability>;
     modal: boolean;
     pages: number;
     q: string;
-    abilities: Array<Ability>;
 }
 
-class Roles extends Component<Props, State> {
+class Abilities extends Component<Props, State> {
     public state = {
         current_page: 1,
-        current: {} as Role,
-        data: new Array<Role>(),
+        current: {} as Ability,
+        data: new Array<Ability>(),
         modal: false,
         pages: 1,
         q: '',
-        abilities: new Array<Ability>(),
     };
     private cancellation = new AbortController();
     private unmounted = false;
@@ -56,7 +53,6 @@ class Roles extends Component<Props, State> {
     }
     public componentDidMount() {
         this.fetchDataAsync();
-        this.fetchAbilitiesAsync();
     }
     public componentWillUnmount() {
         this.cancellation.abort();
@@ -97,8 +93,8 @@ class Roles extends Component<Props, State> {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.data.map((role: Role, index: number) =>
-                                            this.renderRow(role, index)
+                                        {this.state.data.map((ability: Ability, index: number) =>
+                                            this.renderRow(ability, index)
                                         )}
                                     </tbody>
                                 </Table>
@@ -116,7 +112,7 @@ class Roles extends Component<Props, State> {
                     </Col>
                 </Row>
                 <Modal isOpen={this.state.modal}>
-                    <ModalHeader toggle={() => this.toggleModal()}>Edit Role</ModalHeader>
+                    <ModalHeader toggle={() => this.toggleModal()}>Edit Ability</ModalHeader>
                     <ModalBody>
                         <Form>
                             <FormGroup row>
@@ -126,8 +122,9 @@ class Roles extends Component<Props, State> {
                                         type='text'
                                         name='name'
                                         value={this.state.current?.name}
+                                        disabled={this.state.current?.built_in}
                                         onChange={event =>
-                                            this.editRole(event.target.value, 'name')
+                                            this.editAbility(event.target.value, 'name')
                                         }
                                     />
                                 </Col>
@@ -140,22 +137,9 @@ class Roles extends Component<Props, State> {
                                         name='title'
                                         value={this.state.current?.title}
                                         onChange={event =>
-                                            this.editRole(event.target.value, 'title')
+                                            this.editAbility(event.target.value, 'title')
                                         }
                                         placeholder='Leave blank if you don&rsquo;t want to change it'
-                                    />
-                                </Col>
-                            </FormGroup>
-                            <FormGroup row>
-                                <Label sm={2}>Abilities</Label>
-                                <Col sm={10}>
-                                    <Select
-                                        value={this.state.current?.abilities}
-                                        isMulti={true}
-                                        options={this.state.abilities}
-                                        getOptionLabel={option => option.title}
-                                        getOptionValue={option => option.name}
-                                        onChange={(value, meta) => this.editAbilities(value, meta)}
                                     />
                                 </Col>
                             </FormGroup>
@@ -179,7 +163,7 @@ class Roles extends Component<Props, State> {
     }
     private edit(index: number) {
         if (index < 0) {
-            index = this.state.data.push({} as Role);
+            index = this.state.data.push({} as Ability);
             this.setState({
                 data: this.state.data,
             });
@@ -187,30 +171,7 @@ class Roles extends Component<Props, State> {
         const current = { ...this.state.data[index] };
         this.setState({ current }, () => this.toggleModal());
     }
-    private editAbilities(value: any, meta: any) {
-        const { action } = meta;
-        const { current } = this.state;
-        switch (action) {
-            case 'clear':
-                current.abilities = [];
-                break;
-            case 'remove-value':
-                const { removedValue } = meta;
-
-                current.abilities = current.abilities.filter(ability => {
-                    return ability.name !== removedValue.name;
-                });
-                break;
-            case 'select-option':
-                current.abilities = value;
-                break;
-            default:
-                return;
-        }
-
-        this.setState({ current });
-    }
-    private editRole(value: string, key: 'name' | 'title') {
+    private editAbility(value: string, key: 'name' | 'title') {
         const { current } = this.state;
         current[key] = value;
         this.setState({ current });
@@ -221,37 +182,37 @@ class Roles extends Component<Props, State> {
             try {
                 if (current.id === undefined) {
                     const { id, created_at } = await postAsync(
-                        `/api/admin/roles`,
+                        `/api/admin/abilities`,
                         current,
                         this.cancellation.signal
                     );
 
                     this.setState({
-                        data: this.state.data.map(role => {
-                            if (role.id === current.id) {
+                        data: this.state.data.map(ability => {
+                            if (ability.id === current.id) {
                                 current.id = id;
                                 current.created_at = created_at;
 
-                                role = current;
+                                ability = current;
                             }
 
-                            return role;
+                            return ability;
                         }),
                     });
                 } else {
                     await putAsync(
-                        `/api/admin/roles/${current.id}`,
+                        `/api/admin/abilities/${current.id}`,
                         current,
                         this.cancellation.signal
                     );
 
                     this.setState({
-                        data: this.state.data.map(role => {
-                            if (role.id === current.id) {
-                                role = current;
+                        data: this.state.data.map(ability => {
+                            if (ability.id === current.id) {
+                                ability = current;
                             }
 
-                            return role;
+                            return ability;
                         }),
                     });
                 }
@@ -268,43 +229,43 @@ class Roles extends Component<Props, State> {
     }
     private async deleteAsync(id: number) {
         try {
-            await deleteAsync(`/api/admin/roles/${id}`, this.cancellation.signal);
+            await deleteAsync(`/api/admin/abilities/${id}`, this.cancellation.signal);
 
             this.setState({
-                data: this.state.data.filter((role: Role) => {
-                    return role.id !== id;
+                data: this.state.data.filter((ability: Ability) => {
+                    return ability.id !== id;
                 }),
             });
         } catch {
-            toast.error('Cannot delete the role.');
+            toast.error('Cannot delete the ability.');
         }
     }
     private async fetchDataAsync(page: number = 1) {
         this.setState(
             await getAsync(
-                `/api/admin/roles?q=${this.state.q}&page=${page}`,
+                `/api/admin/abilities?q=${this.state.q}&page=${page}`,
                 this.cancellation.signal
             )
         );
     }
-    private async fetchAbilitiesAsync() {
-        this.setState({
-            abilities: await getAsync('/api/admin/abilities', this.cancellation.signal),
-        });
-    }
-    private renderRow(role: Role, index: number) {
+    private renderRow(ability: Ability, index: number) {
         return (
-            <tr key={role.id}>
-                <td>{role.created_at}</td>
-                <td>{role.name}</td>
-                <td>{role.title}</td>
+            <tr key={ability.id}>
+                <td>{ability.created_at}</td>
+                <td>{ability.name}</td>
+                <td>{ability.title}</td>
                 <td>
                     <Button color='primary' size='sm' onClick={() => this.edit(index)}>
                         <i className='fas fa-edit'></i>
                     </Button>{' '}
-                    <Button color='danger' size='sm' onClick={() => this.deleteAsync(role.id)}>
-                        <i className='fas fa-times'></i>
-                    </Button>
+                    {ability.built_in ? null : (
+                        <Button
+                            color='danger'
+                            size='sm'
+                            onClick={() => this.deleteAsync(ability.id)}>
+                            <i className='fas fa-times'></i>
+                        </Button>
+                    )}
                 </td>
             </tr>
         );
@@ -317,7 +278,9 @@ class Roles extends Component<Props, State> {
 
         if (!modal) {
             this.setState({
-                data: this.state.data.filter(role => role !== undefined && role.id !== undefined),
+                data: this.state.data.filter(
+                    ability => ability !== undefined && ability.id !== undefined
+                ),
             });
         }
 
@@ -325,4 +288,4 @@ class Roles extends Component<Props, State> {
     }
 }
 
-export default Roles;
+export default Abilities;

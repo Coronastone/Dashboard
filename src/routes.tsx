@@ -1,5 +1,6 @@
 import { Component } from 'react';
 
+import Abilities from './views/Abilities';
 import Dashboard from './views/Dashboard';
 import Roles from './views/Roles';
 import Users from './views/Users';
@@ -32,6 +33,13 @@ const routers: Array<Route> = [
         name: 'Roles',
         icon: 'fas fa-user-shield',
         component: Roles,
+        layout: '/admin',
+    },
+    {
+        path: '/abilities',
+        name: 'Abilities',
+        icon: 'fas fa-user-tag',
+        component: Abilities,
         layout: '/admin',
     },
 ];

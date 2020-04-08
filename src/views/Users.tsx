@@ -117,7 +117,11 @@ class Users extends Component<Props, State> {
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>{this.renderRow()}</tbody>
+                                    <tbody>
+                                        {this.state.data.map((user: User, index: number) =>
+                                            this.renderRow(user, index)
+                                        )}
+                                    </tbody>
                                 </Table>
                             </CardBody>
                             <CardFooter>
@@ -317,8 +321,8 @@ class Users extends Component<Props, State> {
             toast.error('Cannot fetch data.');
         }
     }
-    private renderRow() {
-        return this.state.data.map((user: User, index: number) => (
+    private renderRow(user: User, index: number) {
+        return (
             <tr key={user.id}>
                 <td>{user.created_at}</td>
                 <td>{user.username}</td>
@@ -342,7 +346,7 @@ class Users extends Component<Props, State> {
                     </Button>
                 </td>
             </tr>
-        ));
+        );
     }
     private async searchAsync(q: string) {
         this.setState({ q }, () => this.fetchDataAsync());
