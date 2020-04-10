@@ -15,7 +15,7 @@ class Protected extends Component<Props, State> {
     public state = {
         authenticated: true,
     };
-    public async componentDidMount() {
+    public async componentWillMount() {
         const hash = window.location.hash;
         if (hash) {
             sessionStorage.setItem('access_token', this.getJsonFromHash(hash));
