@@ -18,7 +18,7 @@ class Protected extends Component<Props, State> {
     public async componentWillMount() {
         const hash = window.location.hash;
         if (hash) {
-            sessionStorage.setItem('access_token', this.getJsonFromHash(hash));
+            sessionStorage.setItem('access_token', this.getTokenFromHash(hash));
 
             window.location.hash = '';
         }
@@ -46,7 +46,7 @@ class Protected extends Component<Props, State> {
             return <div className={this.props.className}></div>;
         }
     }
-    private getJsonFromHash(str: string) {
+    private getTokenFromHash(str: string) {
         const query = str.substr(1).split('&');
 
         for (const i in query) {
