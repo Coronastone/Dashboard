@@ -19,6 +19,7 @@ import {
     InputGroupAddon,
     InputGroupText,
     CardHeader,
+    Spinner,
 } from 'reactstrap';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
@@ -97,7 +98,7 @@ class Roles extends Component<Props, State> {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.data.map((role: Role, index: number) =>
+                                        {this.state.data.map((role, index) =>
                                             this.renderRow(role, index)
                                         )}
                                     </tbody>
@@ -167,7 +168,11 @@ class Roles extends Component<Props, State> {
                             Cancel
                         </Button>{' '}
                         <Button color='primary' onClick={() => this.editAsync()}>
-                            Submit
+                            {this.state.current?.loading === true ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                'Submit'
+                            )}
                         </Button>
                     </ModalFooter>
                 </Modal>
@@ -219,6 +224,9 @@ class Roles extends Component<Props, State> {
     private async editAsync() {
         const { current } = this.state;
         if (current !== undefined) {
+            current.loading = true;
+            this.setState({ current });
+
             try {
                 if (current.id === undefined) {
                     const { id, created_at } = await postAsync(
@@ -229,6 +237,7 @@ class Roles extends Component<Props, State> {
 
                     current.id = id;
                     current.created_at = created_at;
+                    current.loading = true;
 
                     this.setState({
                         data: this.state.data.map(role => {
@@ -245,6 +254,8 @@ class Roles extends Component<Props, State> {
                         current,
                         this.cancellation.signal
                     );
+
+                    current.loading = false;
 
                     this.setState({
                         data: this.state.data.map(role => {
@@ -268,16 +279,36 @@ class Roles extends Component<Props, State> {
         this.toggleModal();
     }
     private async deleteAsync(id: number) {
+        this.setState({
+            data: this.state.data.map(user => {
+                if (user.id === id) {
+                    user.loading = true;
+                }
+
+                return user;
+            }),
+        });
+
         try {
             await deleteAsync(`/api/admin/roles/${id}`, this.cancellation.signal);
 
             this.setState({
-                data: this.state.data.filter((role: Role) => {
+                data: this.state.data.filter(role => {
                     return role.id !== id;
                 }),
             });
         } catch {
             toast.error('Cannot delete the role.');
+
+            this.setState({
+                data: this.state.data.map(user => {
+                    if (user.id === id) {
+                        user.loading = false;
+                    }
+
+                    return user;
+                }),
+            });
         }
     }
     private async fetchDataAsync(page: number = 1) {
@@ -312,7 +343,11 @@ class Roles extends Component<Props, State> {
                         <i className='fas fa-edit'></i>
                     </Button>{' '}
                     <Button color='danger' size='sm' onClick={() => this.deleteAsync(role.id)}>
-                        <i className='fas fa-times'></i>
+                        {role.loading === true ? (
+                            <Spinner size='sm' />
+                        ) : (
+                            <i className='fas fa-times'></i>
+                        )}
                     </Button>
                 </td>
             </tr>

@@ -1,4 +1,8 @@
-interface Ability {
+interface Loading {
+    loading?: boolean;
+}
+
+interface Ability extends Loading {
     id: number;
     name: string;
     title: string;
@@ -6,7 +10,7 @@ interface Ability {
     created_at: string;
 }
 
-interface Role {
+interface Role extends Loading {
     id: number;
     name: string;
     title: string;
@@ -14,7 +18,7 @@ interface Role {
     abilities: Array<Ability>;
 }
 
-interface User {
+interface User extends Loading {
     id: number;
     username: string;
     password?: string;

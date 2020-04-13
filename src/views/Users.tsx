@@ -20,6 +20,7 @@ import {
     InputGroupAddon,
     InputGroupText,
     CardHeader,
+    Spinner,
 } from 'reactstrap';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
@@ -118,7 +119,7 @@ class Users extends Component<Props, State> {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.data.map((user: User, index: number) =>
+                                        {this.state.data.map((user, index) =>
                                             this.renderRow(user, index)
                                         )}
                                     </tbody>
@@ -188,7 +189,11 @@ class Users extends Component<Props, State> {
                             Cancel
                         </Button>{' '}
                         <Button color='primary' onClick={() => this.editAsync()}>
-                            Submit
+                            {this.state.current?.loading === true ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                'Submit'
+                            )}
                         </Button>
                     </ModalFooter>
                 </Modal>
@@ -242,56 +247,64 @@ class Users extends Component<Props, State> {
     private async editAsync() {
         const { current } = this.state;
         if (current !== undefined) {
-            try {
-                if (current.id === undefined) {
-                    const { id, username, created_at } = await postAsync(
-                        `/api/admin/users`,
-                        current,
-                        this.cancellation.signal
-                    );
+            current.loading = true;
+            this.setState({ current });
 
-                    current.id = id;
-                    current.username = username;
-                    current.created_at = created_at;
+            if (current.id === undefined) {
+                const { id, username, created_at } = await postAsync(
+                    `/api/admin/users`,
+                    current,
+                    this.cancellation.signal
+                );
 
-                    this.setState({
-                        data: this.state.data.map(user => {
-                            if (user.id === undefined) {
-                                user = current;
-                            }
-
-                            return user;
-                        }),
-                    });
-                } else {
-                    await putAsync(
-                        `/api/admin/users/${current.id}`,
-                        current,
-                        this.cancellation.signal
-                    );
-
-                    this.setState({
-                        data: this.state.data.map(user => {
-                            if (user.id === current.id) {
-                                user = current;
-                            }
-
-                            return user;
-                        }),
-                    });
-                }
+                current.id = id;
+                current.username = username;
+                current.created_at = created_at;
+                current.loading = false;
 
                 this.setState({
-                    current: undefined,
+                    data: this.state.data.map(user => {
+                        if (user.id === undefined) {
+                            user = current;
+                        }
+
+                        return user;
+                    }),
                 });
-            } catch {
-                toast.error('Cannot save your changes.');
+            } else {
+                await putAsync(`/api/admin/users/${current.id}`, current, this.cancellation.signal);
+
+                current.loading = false;
+
+                this.setState({
+                    data: this.state.data.map(user => {
+                        if (user.id === current.id) {
+                            user = current;
+                        }
+
+                        return user;
+                    }),
+                });
             }
+
+            this.setState({
+                current: undefined,
+            });
         }
 
         this.toggleModal();
     }
     private async deleteAsync(id: number, destroy: boolean) {
+        this.setState({
+            data: this.state.data.map(user => {
+                if (user.id === id) {
+                    user.loading = true;
+                }
+
+                return user;
+            }),
+        });
+
         try {
             await deleteAsync(
                 `/api/admin/users/${id}?destroy=${destroy}`,
@@ -299,12 +312,22 @@ class Users extends Component<Props, State> {
             );
 
             this.setState({
-                data: this.state.data.filter((user: User) => {
+                data: this.state.data.filter(user => {
                     return user.id !== id;
                 }),
             });
         } catch {
             toast.error('Cannot delete the user.');
+
+            this.setState({
+                data: this.state.data.map(user => {
+                    if (user.id === id) {
+                        user.loading = false;
+                    }
+
+                    return user;
+                }),
+            });
         }
     }
     private async fetchDataAsync(page: number = 1) {
@@ -337,7 +360,7 @@ class Users extends Component<Props, State> {
                 <td>{user.username}</td>
                 <td>{user.name}</td>
                 <td>
-                    {user.roles.map((role: Role) => (
+                    {user.roles?.map(role => (
                         <Badge key={role.id} color='info'>
                             {role.title}
                         </Badge>
@@ -351,7 +374,14 @@ class Users extends Component<Props, State> {
                         color={user.deleted_at ? 'danger' : 'warning'}
                         size='sm'
                         onClick={() => this.deleteAsync(user.id, user.deleted_at !== null)}>
-                        <i className={user.deleted_at ? 'fas fa-times' : 'fas fa-trash-alt'}></i>
+                        {user.loading === true ? (
+                            <Spinner size='sm' />
+                        ) : (
+                            <i
+                                className={
+                                    user.deleted_at ? 'fas fa-times' : 'fas fa-trash-alt'
+                                }></i>
+                        )}
                     </Button>
                 </td>
             </tr>

@@ -19,6 +19,7 @@ import {
     InputGroupAddon,
     InputGroupText,
     CardHeader,
+    Spinner,
 } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -93,7 +94,7 @@ class Abilities extends Component<Props, State> {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.data.map((ability: Ability, index: number) =>
+                                        {this.state.data.map((ability, index) =>
                                             this.renderRow(ability, index)
                                         )}
                                     </tbody>
@@ -150,7 +151,11 @@ class Abilities extends Component<Props, State> {
                             Cancel
                         </Button>{' '}
                         <Button color='primary' onClick={() => this.editAsync()}>
-                            Submit
+                            {this.state.current?.loading === true ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                'Submit'
+                            )}
                         </Button>
                     </ModalFooter>
                 </Modal>
@@ -179,6 +184,9 @@ class Abilities extends Component<Props, State> {
     private async editAsync() {
         const { current } = this.state;
         if (current !== undefined) {
+            current.loading = true;
+            this.setState({ current });
+
             try {
                 if (current.id === undefined) {
                     const { id, created_at } = await postAsync(
@@ -189,6 +197,7 @@ class Abilities extends Component<Props, State> {
 
                     current.id = id;
                     current.created_at = created_at;
+                    current.loading = true;
 
                     this.setState({
                         data: this.state.data.map(ability => {
@@ -205,6 +214,8 @@ class Abilities extends Component<Props, State> {
                         current,
                         this.cancellation.signal
                     );
+
+                    current.loading = false;
 
                     this.setState({
                         data: this.state.data.map(ability => {
@@ -228,16 +239,36 @@ class Abilities extends Component<Props, State> {
         this.toggleModal();
     }
     private async deleteAsync(id: number) {
+        this.setState({
+            data: this.state.data.map(user => {
+                if (user.id === id) {
+                    user.loading = true;
+                }
+
+                return user;
+            }),
+        });
+
         try {
             await deleteAsync(`/api/admin/abilities/${id}`, this.cancellation.signal);
 
             this.setState({
-                data: this.state.data.filter((ability: Ability) => {
+                data: this.state.data.filter(ability => {
                     return ability.id !== id;
                 }),
             });
         } catch {
             toast.error('Cannot delete the ability.');
+
+            this.setState({
+                data: this.state.data.map(user => {
+                    if (user.id === id) {
+                        user.loading = false;
+                    }
+
+                    return user;
+                }),
+            });
         }
     }
     private async fetchDataAsync(page: number = 1) {
@@ -267,7 +298,11 @@ class Abilities extends Component<Props, State> {
                             color='danger'
                             size='sm'
                             onClick={() => this.deleteAsync(ability.id)}>
-                            <i className='fas fa-times'></i>
+                            {ability.loading === true ? (
+                                <Spinner size='sm' />
+                            ) : (
+                                <i className='fas fa-times'></i>
+                            )}
                         </Button>
                     )}
                 </td>
