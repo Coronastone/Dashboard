@@ -241,12 +241,16 @@ class Abilities extends Component<Props, State> {
         }
     }
     private async fetchDataAsync(page: number = 1) {
-        this.setState(
-            await getAsync(
-                `/api/admin/abilities?q=${this.state.q}&page=${page}`,
-                this.cancellation.signal
-            )
-        );
+        try {
+            this.setState(
+                await getAsync(
+                    `/api/admin/abilities?q=${this.state.q}&page=${page}`,
+                    this.cancellation.signal
+                )
+            );
+        } catch {
+            toast.error('Cannot fetch data.');
+        }
     }
     private renderRow(ability: Ability, index: number) {
         return (

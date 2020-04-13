@@ -280,17 +280,25 @@ class Roles extends Component<Props, State> {
         }
     }
     private async fetchDataAsync(page: number = 1) {
-        this.setState(
-            await getAsync(
-                `/api/admin/roles?q=${this.state.q}&page=${page}`,
-                this.cancellation.signal
-            )
-        );
+        try {
+            this.setState(
+                await getAsync(
+                    `/api/admin/roles?q=${this.state.q}&page=${page}`,
+                    this.cancellation.signal
+                )
+            );
+        } catch {
+            toast.error('Cannot fetch data.');
+        }
     }
     private async fetchAbilitiesAsync() {
-        this.setState({
-            abilities: await getAsync('/api/admin/abilities', this.cancellation.signal),
-        });
+        try {
+            this.setState({
+                abilities: await getAsync('/api/admin/abilities', this.cancellation.signal),
+            });
+        } catch {
+            toast.error('Cannot fetch data.');
+        }
     }
     private renderRow(role: Role, index: number) {
         return (
