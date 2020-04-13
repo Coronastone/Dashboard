@@ -19,6 +19,7 @@ async function sendAsync(url: string, method: string, data?: any, signal?: Abort
                     typeof data === 'string'
                         ? 'application/x-www-form-urlencoded'
                         : 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
             method: method,
             mode: 'cors',
