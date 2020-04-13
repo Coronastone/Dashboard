@@ -226,7 +226,7 @@ class Users extends Component<Props, State> {
             case 'remove-value':
                 const { removedValue } = meta;
 
-                current.roles = current.roles.filter(role => {
+                current.roles = current.roles?.filter(role => {
                     return role.name !== removedValue.name;
                 });
                 break;

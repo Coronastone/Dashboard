@@ -25,7 +25,7 @@ interface User extends Loading {
     name: string;
     deleted_at: string;
     created_at: string;
-    roles: Array<Role>;
+    roles?: Array<Role>;
 }
 
 export type { Ability, Role, User };
