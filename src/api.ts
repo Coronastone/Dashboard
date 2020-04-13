@@ -1,12 +1,24 @@
 async function sendAsync(url: string, method: string, data?: any, signal?: AbortSignal) {
+    let body = null;
+    if (data === undefined) {
+        body = null;
+    } else if (typeof data === 'string') {
+        body = data;
+    } else {
+        body = JSON.stringify(data);
+    }
+
     try {
         return await fetch(url, {
-            body: data === undefined ? null : JSON.stringify(data),
+            body: body,
             cache: 'no-cache',
             credentials: 'same-origin',
             headers: {
                 Authorization: `Bearer ${sessionStorage.getItem('access_token')}`,
-                'Content-Type': 'application/json',
+                'Content-Type':
+                    typeof data === 'string'
+                        ? 'application/x-www-form-urlencoded'
+                        : 'application/json',
             },
             method: method,
             mode: 'cors',
