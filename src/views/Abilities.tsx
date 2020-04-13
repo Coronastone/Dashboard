@@ -187,12 +187,12 @@ class Abilities extends Component<Props, State> {
                         this.cancellation.signal
                     );
 
+                    current.id = id;
+                    current.created_at = created_at;
+
                     this.setState({
                         data: this.state.data.map(ability => {
-                            if (ability.id === current.id) {
-                                current.id = id;
-                                current.created_at = created_at;
-
+                            if (ability.id === undefined) {
                                 ability = current;
                             }
 

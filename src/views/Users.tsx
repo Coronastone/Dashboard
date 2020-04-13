@@ -241,43 +241,51 @@ class Users extends Component<Props, State> {
     private async editAsync() {
         const { current } = this.state;
         if (current !== undefined) {
-            if (current.id === undefined) {
-                const { id, username, created_at } = await postAsync(
-                    `/api/admin/users`,
-                    current,
-                    this.cancellation.signal
-                );
+            try {
+                if (current.id === undefined) {
+                    const { id, username, created_at } = await postAsync(
+                        `/api/admin/users`,
+                        current,
+                        this.cancellation.signal
+                    );
+
+                    current.id = id;
+                    current.username = username;
+                    current.created_at = created_at;
+
+                    this.setState({
+                        data: this.state.data.map(user => {
+                            if (user.id === undefined) {
+                                user = current;
+                            }
+
+                            return user;
+                        }),
+                    });
+                } else {
+                    await putAsync(
+                        `/api/admin/users/${current.id}`,
+                        current,
+                        this.cancellation.signal
+                    );
+
+                    this.setState({
+                        data: this.state.data.map(user => {
+                            if (user.id === current.id) {
+                                user = current;
+                            }
+
+                            return user;
+                        }),
+                    });
+                }
 
                 this.setState({
-                    data: this.state.data.map(user => {
-                        if (user.id === current.id) {
-                            current.id = id;
-                            current.username = username;
-                            current.created_at = created_at;
-
-                            user = current;
-                        }
-
-                        return user;
-                    }),
+                    current: undefined,
                 });
-            } else {
-                await putAsync(`/api/admin/users/${current.id}`, current, this.cancellation.signal);
-
-                this.setState({
-                    data: this.state.data.map(user => {
-                        if (user.id === current.id) {
-                            user = current;
-                        }
-
-                        return user;
-                    }),
-                });
+            } catch {
+                toast.error('Cannot save your changes.');
             }
-
-            this.setState({
-                current: undefined,
-            });
         }
 
         this.toggleModal();

@@ -226,12 +226,12 @@ class Roles extends Component<Props, State> {
                         this.cancellation.signal
                     );
 
+                    current.id = id;
+                    current.created_at = created_at;
+
                     this.setState({
                         data: this.state.data.map(role => {
-                            if (role.id === current.id) {
-                                current.id = id;
-                                current.created_at = created_at;
-
+                            if (role.id === undefined) {
                                 role = current;
                             }
 
