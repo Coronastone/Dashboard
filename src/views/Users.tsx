@@ -250,46 +250,54 @@ class Users extends Component<Props, State> {
             current.loading = true;
             this.setState({ current });
 
-            if (current.id === undefined) {
-                const { id, username, created_at } = await postAsync(
-                    `/api/admin/users`,
-                    current,
-                    this.cancellation.signal
-                );
+            try {
+                if (current.id === undefined) {
+                    const { id, username, created_at } = await postAsync(
+                        `/api/admin/users`,
+                        current,
+                        this.cancellation.signal
+                    );
 
-                current.id = id;
-                current.username = username;
-                current.created_at = created_at;
-                current.loading = false;
+                    current.id = id;
+                    current.username = username;
+                    current.created_at = created_at;
+                    current.loading = false;
+
+                    this.setState({
+                        data: this.state.data.map(user => {
+                            if (user.id === undefined) {
+                                user = current;
+                            }
+
+                            return user;
+                        }),
+                    });
+                } else {
+                    await putAsync(
+                        `/api/admin/users/${current.id}`,
+                        current,
+                        this.cancellation.signal
+                    );
+
+                    current.loading = false;
+
+                    this.setState({
+                        data: this.state.data.map(user => {
+                            if (user.id === current.id) {
+                                user = current;
+                            }
+
+                            return user;
+                        }),
+                    });
+                }
 
                 this.setState({
-                    data: this.state.data.map(user => {
-                        if (user.id === undefined) {
-                            user = current;
-                        }
-
-                        return user;
-                    }),
+                    current: undefined,
                 });
-            } else {
-                await putAsync(`/api/admin/users/${current.id}`, current, this.cancellation.signal);
-
-                current.loading = false;
-
-                this.setState({
-                    data: this.state.data.map(user => {
-                        if (user.id === current.id) {
-                            user = current;
-                        }
-
-                        return user;
-                    }),
-                });
+            } catch {
+                toast.error('Cannot save your changes.');
             }
-
-            this.setState({
-                current: undefined,
-            });
         }
 
         this.toggleModal();
