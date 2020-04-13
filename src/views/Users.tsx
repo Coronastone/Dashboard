@@ -173,6 +173,7 @@ class Users extends Component<Props, State> {
                                     <Select
                                         value={this.state.current?.roles}
                                         isMulti={true}
+                                        isSearchable={true}
                                         options={this.state.roles}
                                         getOptionLabel={option => option.title}
                                         getOptionValue={option => option.name}

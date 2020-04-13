@@ -152,6 +152,7 @@ class Roles extends Component<Props, State> {
                                     <Select
                                         value={this.state.current?.abilities}
                                         isMulti={true}
+                                        isSearchable={true}
                                         options={this.state.abilities}
                                         getOptionLabel={option => option.title}
                                         getOptionValue={option => option.name}
