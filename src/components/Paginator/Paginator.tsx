@@ -5,7 +5,7 @@ interface Props {
     pages: number;
     current: number;
     disabled: boolean;
-    onClick?: Function;
+    onClick?: (page: number) => void;
 }
 
 interface State {

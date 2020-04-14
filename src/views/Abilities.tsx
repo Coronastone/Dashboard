@@ -104,7 +104,7 @@ class Abilities extends Component<Props, State> {
                                 <Paginator
                                     pages={this.state.pages}
                                     current={this.state.current_page}
-                                    onClick={(page: number) => {
+                                    onClick={page => {
                                         this.fetchDataAsync(page);
                                     }}
                                 />
