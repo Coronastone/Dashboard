@@ -121,7 +121,6 @@ class Abilities extends Component<Props, State> {
                                 <Col sm={10}>
                                     <Input
                                         type='text'
-                                        name='name'
                                         value={this.state.current?.name}
                                         disabled={this.state.current?.built_in}
                                         onChange={event =>
@@ -135,7 +134,6 @@ class Abilities extends Component<Props, State> {
                                 <Col sm={10}>
                                     <Input
                                         type='text'
-                                        name='title'
                                         value={this.state.current?.title}
                                         onChange={event =>
                                             this.editAbility(event.target.value, 'title')

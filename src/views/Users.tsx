@@ -146,7 +146,6 @@ class Users extends Component<Props, State> {
                                 <Col sm={10}>
                                     <Input
                                         type='text'
-                                        name='name'
                                         value={this.state.current?.name}
                                         onChange={event =>
                                             this.editUser(event.target.value, 'name')
@@ -159,7 +158,6 @@ class Users extends Component<Props, State> {
                                 <Col sm={10}>
                                     <Input
                                         type='password'
-                                        name='password'
                                         value={this.state.current?.password}
                                         onChange={event =>
                                             this.editUser(event.target.value, 'password')

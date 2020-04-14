@@ -125,7 +125,6 @@ class Roles extends Component<Props, State> {
                                 <Col sm={10}>
                                     <Input
                                         type='text'
-                                        name='name'
                                         value={this.state.current?.name}
                                         onChange={event =>
                                             this.editRole(event.target.value, 'name')
@@ -138,7 +137,6 @@ class Roles extends Component<Props, State> {
                                 <Col sm={10}>
                                     <Input
                                         type='text'
-                                        name='title'
                                         value={this.state.current?.title}
                                         onChange={event =>
                                             this.editRole(event.target.value, 'title')
