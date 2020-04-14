@@ -240,12 +240,12 @@ class Abilities extends Component<Props, State> {
     }
     private async deleteAsync(id: number) {
         this.setState({
-            data: this.state.data.map(user => {
-                if (user.id === id) {
-                    user.loading = true;
+            data: this.state.data.map(ability => {
+                if (ability.id === id) {
+                    ability.loading = true;
                 }
 
-                return user;
+                return ability;
             }),
         });
 
@@ -261,12 +261,12 @@ class Abilities extends Component<Props, State> {
             toast.error('Cannot delete the ability.');
 
             this.setState({
-                data: this.state.data.map(user => {
-                    if (user.id === id) {
-                        user.loading = false;
+                data: this.state.data.map(ability => {
+                    if (ability.id === id) {
+                        ability.loading = false;
                     }
 
-                    return user;
+                    return ability;
                 }),
             });
         }

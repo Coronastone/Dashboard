@@ -280,12 +280,12 @@ class Roles extends Component<Props, State> {
     }
     private async deleteAsync(id: number) {
         this.setState({
-            data: this.state.data.map(user => {
-                if (user.id === id) {
-                    user.loading = true;
+            data: this.state.data.map(role => {
+                if (role.id === id) {
+                    role.loading = true;
                 }
 
-                return user;
+                return role;
             }),
         });
 
@@ -301,12 +301,12 @@ class Roles extends Component<Props, State> {
             toast.error('Cannot delete the role.');
 
             this.setState({
-                data: this.state.data.map(user => {
-                    if (user.id === id) {
-                        user.loading = false;
+                data: this.state.data.map(role => {
+                    if (role.id === id) {
+                        role.loading = false;
                     }
 
-                    return user;
+                    return role;
                 }),
             });
         }
